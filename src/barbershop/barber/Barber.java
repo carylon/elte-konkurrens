@@ -21,16 +21,22 @@ public class Barber {
 
         Thread thread = new Thread(() -> {
             synchronized (barber) {
-                while(barber.barberShop.getFinallyClosed() == false) {
+                while (barber.barberShop.getFinallyClosed() == false) {
                     try {
-                        barber.wait(BarberShop.DAY_LENGTH);
-                        if (barber.client != null) {
-                            Random rand = new Random();
-                            Thread.sleep(rand.nextInt(MAX_SERVICE_TIME - MIN_SERVICE_TIME) + MIN_SERVICE_TIME);
-                            barber.client = null;
-                            barber.barberShop.notify();
+                        Client c = barber.barberShop.getNextClient();
+                        if (c == null) {
+                            // If there is no client in the shop, wait for the next signal.
+                            barber.wait(BarberShop.DAY_LENGTH);
                         }
-                        Thread.sleep(0, 500);
+                        while (c != null) {
+                            barber.client = c;
+                            Random rand = new Random();
+                            int serviceTime = rand.nextInt(MAX_SERVICE_TIME - MIN_SERVICE_TIME) + MIN_SERVICE_TIME;
+                            Thread.sleep(rand.nextInt(MAX_SERVICE_TIME - MIN_SERVICE_TIME) + MIN_SERVICE_TIME);
+                            barber.barberShop.barberFinishedWithAClient(barber, barber.client, serviceTime);
+                            barber.client = null;
+                            c = barber.barberShop.getNextClient();
+                        }
                     } catch (InterruptedException e) {
                         e.printStackTrace();
                     }

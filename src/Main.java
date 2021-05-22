@@ -6,12 +6,12 @@ import client.Client;
 class Main {
     public static void main(String[] args) {
         BarberShop bs = new BarberShop();
-        Client c1 = new Client();
-        Client c2 = new Client();
-        Client c3 = new Client();
-        Client c4 = new Client();
-        Client c5 = new Client();
-        Client c6 = new Client();
+        Client c1 = new Client("András");
+        Client c2 = new Client("Huba");
+        Client c3 = new Client("Elemér");
+        Client c4 = new Client("Zsófi");
+        Client c5 = new Client("Karcsi");
+        Client c6 = new Client("Katalin");
 
         try {
             bs.addClient(c1);

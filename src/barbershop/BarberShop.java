@@ -1,8 +1,7 @@
 package barbershop;
 
-import java.util.ArrayList;
 import java.util.Date;
-import java.util.Stack;
+import java.util.LinkedList;
 
 import client.Client;
 import barbershop.barber.Barber;
@@ -15,15 +14,15 @@ public class BarberShop {
 
     private boolean finallyClosed;
     private final Date date;
-    private final Stack<Client> waitList;
-    private final ArrayList<Barber> barbers;
+    private final LinkedList<Client> waitList;
+    private final LinkedList<Barber> barbers;
 
 
     public BarberShop() {
         this.finallyClosed = false;
         this.date = new Date();
-        this.waitList = new Stack<>();
-        this.barbers = new ArrayList<>();
+        this.waitList = new LinkedList<>();
+        this.barbers = new LinkedList<>();
 
         this.initBarbers();
     }
@@ -49,10 +48,19 @@ public class BarberShop {
             throw new BarberShopOutOfServiceException();
         }
 
-        this.waitList.add(c);
+        this.waitList.addLast(c);
+        this.barbers.forEach((b) -> b.notifyAll());
     }
 
     public boolean getFinallyClosed() {
         return this.finallyClosed;
+    }
+
+    public void barberFinishedWithAClient(Barber barber, Client client, int time) {
+        System.out.println("Barber finished with " + client.getName() + ".");
+    }
+
+    public Client getNextClient() {
+        return this.waitList.poll();
     }
 }

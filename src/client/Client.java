@@ -1,7 +1,13 @@
 package client;
 
 public class Client {
-    public Client() {
-        System.out.println("Client class created");
+    private final String name;
+
+    public Client(String name) {
+        this.name = name;
+    }
+
+    public String getName() {
+        return this.name;
     }
 }
