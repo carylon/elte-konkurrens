@@ -1,6 +1,7 @@
 import javax.naming.LimitExceededException;
 
 import barbershop.BarberShop;
+import barbershop.BarberShopOutOfServiceException;
 import client.Client;
 
 class Main {
@@ -21,6 +22,8 @@ class Main {
             bs.addClient(c5);
             bs.addClient(c6);
         } catch (LimitExceededException e) {
+            System.out.println(e);
+        } catch (BarberShopOutOfServiceException e) {
             System.out.println(e);
         }
     }
