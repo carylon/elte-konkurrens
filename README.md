@@ -1,0 +1,1 @@
+# Konkurrens Beadandó
