@@ -4,8 +4,6 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.Stack;
 
-import javax.naming.LimitExceededException;
-
 import client.Client;
 import barbershop.barber.Barber;
 
@@ -34,9 +32,9 @@ public class BarberShop {
         this.barbers.add(Barber.createBarber(this));
     }
 
-    public void addClient(Client c) throws LimitExceededException, BarberShopOutOfServiceException {
+    public void addClient(Client c) throws BarberShopReachedMaxCapacity, BarberShopOutOfServiceException {
         if (this.waitList.size() >= MAX_CLIENT) {
-            throw new LimitExceededException("BarberShop.addClient: Max client limit reached (" + MAX_CLIENT + ").");
+            throw new BarberShopReachedMaxCapacity(MAX_CLIENT);
         }
 
         /** 

@@ -30,6 +30,7 @@ public class Barber {
                             barber.client = null;
                             barber.barberShop.notify();
                         }
+                        Thread.sleep(0, 500);
                     } catch (InterruptedException e) {
                         e.printStackTrace();
                     }
