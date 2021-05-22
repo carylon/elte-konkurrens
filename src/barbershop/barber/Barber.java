@@ -26,7 +26,10 @@ public class Barber {
                         Client c = barber.barberShop.getNextClient();
                         if (c == null) {
                             // If there is no client in the shop, wait for the next signal.
+                            System.out.println("Client list is empty");
                             barber.wait(BarberShop.DAY_LENGTH);
+                        } else {
+                            System.out.println("Client: " + c.getName());
                         }
                         while (c != null) {
                             barber.client = c;
@@ -42,6 +45,7 @@ public class Barber {
                     }
                 }
             }
+            System.out.println("Barber thread finished.");
         });
 
         thread.start();

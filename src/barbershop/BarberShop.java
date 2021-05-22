@@ -2,6 +2,8 @@ package barbershop;
 
 import java.util.Date;
 import java.util.LinkedList;
+import java.util.Timer;
+import java.util.TimerTask;
 
 import client.Client;
 import barbershop.barber.Barber;
@@ -13,18 +15,24 @@ public class BarberShop {
     public static final short SERVICE_END_TIME = 6400;
 
     private boolean finallyClosed;
-    private final Date date;
     private final LinkedList<Client> waitList;
     private final LinkedList<Barber> barbers;
 
 
     public BarberShop() {
         this.finallyClosed = false;
-        this.date = new Date();
         this.waitList = new LinkedList<>();
         this.barbers = new LinkedList<>();
 
         this.initBarbers();
+
+        Timer t = new Timer();
+        t.schedule(new TimerTask() {
+            @Override
+            public void run() {
+                BarberShop.this.finallyClosed = true;
+            }
+        }, (long) (DAY_LENGTH * 5));
     }
 
     private void initBarbers() {
@@ -43,13 +51,19 @@ public class BarberShop {
          * so we always check the OS time to determine what is the actual time,
          * instead of calculating it from a specific date.
         */
-        long time = this.date.getTime() % DAY_LENGTH;
+        Date date = new Date();
+        long time = date.getTime() % DAY_LENGTH;
         if (time < SERVICE_START_TIME || time > SERVICE_END_TIME) {
             throw new BarberShopOutOfServiceException();
         }
 
+        System.out.println("Client added: " + c.getName());
         this.waitList.addLast(c);
-        this.barbers.forEach((b) -> b.notifyAll());
+        this.barbers.forEach((b) -> {
+            synchronized(b) {
+                b.notify();
+            }
+        });
     }
 
     public boolean getFinallyClosed() {
@@ -57,7 +71,7 @@ public class BarberShop {
     }
 
     public void barberFinishedWithAClient(Barber barber, Client client, int time) {
-        System.out.println("Barber finished with " + client.getName() + ".");
+        System.out.println("Barber finished with " + client.getName() + ", in " + time + "ms.");
     }
 
     public Client getNextClient() {
