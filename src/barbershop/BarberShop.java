@@ -25,14 +25,6 @@ public class BarberShop {
         this.barbers = new LinkedList<>();
 
         this.initBarbers();
-
-        Timer t = new Timer();
-        t.schedule(new TimerTask() {
-            @Override
-            public void run() {
-                BarberShop.this.finallyClosed = true;
-            }
-        }, (long) (DAY_LENGTH * 5));
     }
 
     private void initBarbers() {
@@ -76,5 +68,15 @@ public class BarberShop {
 
     public Client getNextClient() {
         return this.waitList.poll();
+    }
+
+    public void startService(int days) {
+        Timer t = new Timer();
+        t.schedule(new TimerTask() {
+            @Override
+            public void run() {
+                BarberShop.this.finallyClosed = true;
+            }
+        }, (long) (DAY_LENGTH * days));
     }
 }
