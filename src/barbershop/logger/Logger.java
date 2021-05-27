@@ -37,8 +37,6 @@ public class Logger {
                 e.printStackTrace();
             }
         }
-
-        Logger.single_instance.log("alma");
         return Logger.single_instance;
     }
 
