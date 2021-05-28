@@ -18,15 +18,14 @@ public class Logger {
     private static String LOCATION = "logs";
     private static Logger single_instance = null;
 
-    private final BufferedWriter logger;
-
     private Logger() throws IOException {
         File file = new File(Logger.LOCATION, Logger.FILENAME);
         file.getParentFile().mkdirs();
 
         file.createNewFile();
-        FileWriter fr = new FileWriter(file, true);
-        this.logger = new BufferedWriter(fr);
+        BufferedWriter bw = new BufferedWriter(new FileWriter(new File(Logger.LOCATION, Logger.FILENAME)));
+        bw.write("");
+        bw.close();
     }
 
     public static Logger getInstance() {
@@ -53,7 +52,12 @@ public class Logger {
         String todayAsString = df.format(today);
 
         try {
-            this.logger.write(todayAsString + " ::: " + Logger.escape(str) + "\n");
+            String s = todayAsString + " ::: " + Logger.escape(str) + "\n";
+            BufferedWriter w = new BufferedWriter(new FileWriter(new File(Logger.LOCATION, Logger.FILENAME), true));
+            w.append(s);
+            System.out.println(s);
+            w.close();
+            //this.logger.append(s);
         } catch (IOException e) {
             e.printStackTrace();
         }

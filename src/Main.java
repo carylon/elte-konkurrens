@@ -25,8 +25,7 @@ class Main {
         int i = 0;
         while (!bs.getFinallyClosed()) {
             try {
-                Random rand = new Random();
-                Thread.sleep(rand.nextInt(250));
+                Thread.sleep(Main.clientRandomArriveTimeMaker((new Date()).getTime()));
             } catch (Exception e) {
                 System.out.println("Sleep failed");
             }
@@ -42,5 +41,14 @@ class Main {
             }
         }
         System.out.println("Main process finished");
+    }
+
+    /**
+     * Translate from 0 to 9600 to a random number which will illustrate the client visiting time latencies
+     */
+    public static int clientRandomArriveTimeMaker(long ms) {
+        Double x = (ms % BarberShop.DAY_LENGTH) / (BarberShop.DAY_LENGTH / Math.PI);
+        
+        return (int)((2 - ((Math.abs(Math.sin(x)) * Math.abs(Math.cos(8 * x)) + 1) * Math.abs(Math.sin(x)))) * ((new Random()).nextInt(100) + 200));
     }
 }
