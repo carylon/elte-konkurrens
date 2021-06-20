@@ -1,7 +1,7 @@
 package client;
 
 public class Client {
-    private final String name;
+    private String name;
 
     public Client(String name) {
         this.name = name;

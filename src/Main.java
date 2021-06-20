@@ -1,3 +1,4 @@
+
 import java.util.Date;
 import java.util.Random;
 
@@ -6,49 +7,51 @@ import barbershop.BarberShopOutOfServiceException;
 import barbershop.BarberShopReachedMaxCapacity;
 import client.Client;
 
-class Main {
+public class Main {
     public static void main(String[] args) {
-        final BarberShop bs = new BarberShop();
-
+        final var barberShop = new BarberShop();
         // Wait until 0:00
         try {
-            Date d = new Date();
+            var d = new Date();
             Thread.sleep(BarberShop.DAY_LENGTH - (d.getTime() % BarberShop.DAY_LENGTH));
-        } catch (Exception e) {
-            System.out.println("Sleep failed");
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
         }
 
         // Start service for 5 days.
-        bs.startService(5);
+        barberShop.startService(5);
 
         // Start The barber shop service
-        int i = 0;
-        while (!bs.getFinallyClosed()) {
+        var i = 0;
+        while (!barberShop.getFinallyClosed()) {
             try {
-                Thread.sleep(Main.clientRandomArriveTimeMaker((new Date()).getTime()));
-            } catch (Exception e) {
-                System.out.println("Sleep failed");
+                Thread.sleep(Main.clientRandomArriveTimeMaker(new Date().getTime()));
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
             }
+            final var c = new Client(Integer.toString(++i));
             try {
-                bs.addClient(new Client("Client - " + i));
-                i++;
-            } catch (BarberShopReachedMaxCapacity e) {
-                // Do nothing for now
-                System.out.println(e);
-            } catch (BarberShopOutOfServiceException e) {
-                // Do nothing for now
+                barberShop.newClientArrived(c);
+            } catch (BarberShopOutOfServiceException | BarberShopReachedMaxCapacity e) {
                 System.out.println(e);
             }
         }
-        System.out.println("Main process finished");
+        barberShop.printStatisctics();
     }
 
-    /**
-     * Translate from 0 to 9600 to a random number which will illustrate the client visiting time latencies
-     */
     public static int clientRandomArriveTimeMaker(long ms) {
-        Double x = (ms % BarberShop.DAY_LENGTH) / (BarberShop.DAY_LENGTH / Math.PI);
-        
-        return (int)((2 - ((Math.abs(Math.sin(x)) * Math.abs(Math.cos(8 * x)) + 1) * Math.abs(Math.sin(x)))) * ((new Random()).nextInt(100) + 200));
+        var time = ms % BarberShop.DAY_LENGTH;
+        Double x = time / (BarberShop.DAY_LENGTH / Math.PI);
+        var formula = (int)((2 - ((Math.abs(Math.sin(x)) * Math.abs(Math.cos(8 * x)) + 1) * Math.abs(Math.sin(x)))) * ((new Random()).nextInt(100) + 200));
+        formula += 5 + new Random().nextInt(10);
+        var closingHours = time < BarberShop.SERVICE_START_TIME || time > BarberShop.SERVICE_END_TIME;
+        if (closingHours) {
+            if ((formula * 10) % BarberShop.DAY_LENGTH > BarberShop.SERVICE_START_TIME) {
+                if (time < BarberShop.SERVICE_START_TIME) return BarberShop.SERVICE_START_TIME - (int)time;
+                return BarberShop.DAY_LENGTH - (int)time + BarberShop.SERVICE_START_TIME;
+            }
+            return formula * 10;
+        }
+        return formula;
     }
 }
