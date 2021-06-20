@@ -29,7 +29,7 @@ public class Barber {
             Thread.currentThread().interrupt();
         }
         this.client = null;
-        this.barberShop.barberFinished(this);
+        this.barberShop.barberFinished();
     }
 
     public boolean hasClient() {

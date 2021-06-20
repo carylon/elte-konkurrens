@@ -33,10 +33,10 @@ public class BarberShop {
         this.barber = new Barber(this);
 
         new Thread(() -> {
-            synchronized (this.barber) {                    
+            synchronized (this.clients) {                    
                 while(!this.finallyClosed || (this.finallyClosed && !this.clients.isEmpty())) {
                     try {
-                        if (this.clients.isEmpty()) this.barber.wait();
+                        if (this.clients.isEmpty()) this.clients.wait();
                     } catch (InterruptedException e) {
                         Thread.currentThread().interrupt();
                     }
@@ -49,11 +49,11 @@ public class BarberShop {
         }).start();
     }
 
-    public void barberFinished(Barber barber) {
+    public void barberFinished() {
         this.servedClients++;
         if (!this.clients.isEmpty()) {
-            synchronized (barber) {
-                barber.notify();
+            synchronized (this.clients) {
+                this.clients.notify();
             }
         }
     }
@@ -71,16 +71,16 @@ public class BarberShop {
 
         this.clients.addLast(c);
         if (!this.barber.hasClient()) {
-            synchronized (barber) {
-                barber.notify();
+            synchronized (this.clients) {
+                this.clients.notify();
             }
         }
     }
     
     public void closeShop() {
         this.finallyClosed = true;
-        synchronized (this.barber) {
-            this.barber.notify();
+        synchronized (this.clients) {
+            this.clients.notify();
         }
     }
 
