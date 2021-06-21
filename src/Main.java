@@ -10,9 +10,10 @@ import client.Client;
 public class Main {
     public static void main(String[] args) {
         final var barberShop = new BarberShop();
+
         // Wait until 0:00
+        var d = new Date();
         try {
-            var d = new Date();
             Thread.sleep(BarberShop.DAY_LENGTH - (d.getTime() % BarberShop.DAY_LENGTH));
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
@@ -36,6 +37,8 @@ public class Main {
                 System.out.println(e);
             }
         }
+
+        // At the end of the serving days, print the statistics
         barberShop.printStatisctics();
     }
 

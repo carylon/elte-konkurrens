@@ -57,28 +57,23 @@ public class BarberShop {
     public void barberFinished(Barber barber, Client client) {
         System.out.println("Barber: " + barber.getName() + " finished with client: " + client.getName());
         this.servedClients++;
-        synchronized (this.clients) {
-            if (!this.clients.isEmpty()) {
-                this.clients.notifyAll();
-            }
-        }
     }
 
     public void newClientArrived(Client client) throws BarberShopOutOfServiceException, BarberShopReachedMaxCapacity {
+        System.out.println("New client arrived to the barber shop: " + client.getName());
+        final var time = new Date().getTime() % DAY_LENGTH;
+        if (time < SERVICE_START_TIME || time > SERVICE_END_TIME) {
+            this.skippedClientBecauseOfClosingHours++;
+            throw new BarberShopOutOfServiceException();
+        }
         synchronized (this.clients) {
-            System.out.println("New client arrived to the barber shop: " + client.getName());
-            final var time = new Date().getTime() % DAY_LENGTH;
-            if (time < SERVICE_START_TIME || time > SERVICE_END_TIME) {
-                this.skippedClientBecauseOfClosingHours++;
-                throw new BarberShopOutOfServiceException();
-            }
             if (this.clients.size() >= MAX_CLIENT) {
                 this.skippedClientBecauseOfMaxCapacity++;
                 throw new BarberShopReachedMaxCapacity(MAX_CLIENT);
             }
             this.clients.addLast(client);
             if (this.barbers.stream().anyMatch(barber -> !barber.hasClient())) {
-                this.clients.notifyAll();
+                this.clients.notify();
             }
         }
     }
