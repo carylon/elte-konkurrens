@@ -10,14 +10,16 @@ public class Barber {
     private static final short MAX_SERVICE_TIME = 200;
 
     private final BarberShop barberShop;
+    private final String name;
     private Client client;
     
     private final Random rand;
 
-    public Barber(BarberShop bs) {
+    public Barber(String name, BarberShop bs) {
         this.client = null;
         this.rand = new Random();
         this.barberShop = bs;
+        this.name = name;
     }
 
     public void addClient(Client c) {
@@ -29,10 +31,14 @@ public class Barber {
             Thread.currentThread().interrupt();
         }
         this.client = null;
-        this.barberShop.barberFinished();
+        this.barberShop.barberFinished(this, c);
     }
 
     public boolean hasClient() {
         return this.client != null;
+    }
+
+    public String getName() {
+        return this.name;
     }
 }

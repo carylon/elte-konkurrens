@@ -9,6 +9,7 @@ import client.Client;
 import barbershop.barber.Barber;
 
 public class BarberShop {
+    private static final short BARBERS_COUNT = 2;
     private static final short MAX_CLIENT = 5;
     public static final short DAY_LENGTH = 9600;
     public static final short SERVICE_START_TIME = 3200;
@@ -16,7 +17,7 @@ public class BarberShop {
 
     private boolean finallyClosed;
     private final LinkedList<Client> clients;
-    private final Barber barber;
+    private final LinkedList<Barber> barbers;
 
     // Statistics
     private int skippedClientBecauseOfMaxCapacity;
@@ -30,49 +31,54 @@ public class BarberShop {
 
         this.finallyClosed = false;
         this.clients = new LinkedList<>();
-        this.barber = new Barber(this);
+        this.barbers = new LinkedList<>();
+        for (var i = 0; i < BARBERS_COUNT; i++) {
+            this.barbers.add(new Barber("Barber " + Integer.toString(i), this));
+        }
 
-        new Thread(() -> {
-            synchronized (this.clients) {                    
-                while(!this.finallyClosed || (this.finallyClosed && !this.clients.isEmpty())) {
-                    try {
-                        if (this.clients.isEmpty()) this.clients.wait();
-                    } catch (InterruptedException e) {
-                        Thread.currentThread().interrupt();
+        this.barbers.forEach(barber -> new Thread(() -> {
+            while(!this.finallyClosed || (this.finallyClosed && !this.clients.isEmpty())) {
+                Client c = null;
+                synchronized (this.clients) {
+                    if (this.clients.isEmpty()) {
+                        try {
+                            this.clients.wait();
+                        } catch (InterruptedException e) {
+                            Thread.currentThread().interrupt();
+                        }
                     }
-                    if (!this.clients.isEmpty()) {
-                        final Client c = this.clients.poll();
-                        this.barber.addClient(c);
-                    }
+                    c = this.clients.poll();
                 }
+                if (c != null) barber.addClient(c);
             }
-        }).start();
+        }).start());
     }
 
-    public void barberFinished() {
+    public void barberFinished(Barber barber, Client client) {
+        System.out.println("Barber: " + barber.getName() + " finished with client: " + client.getName());
         this.servedClients++;
-        if (!this.clients.isEmpty()) {
-            synchronized (this.clients) {
-                this.clients.notify();
+        synchronized (this.clients) {
+            if (!this.clients.isEmpty()) {
+                this.clients.notifyAll();
             }
         }
     }
 
-    public void newClientArrived(Client c) throws BarberShopOutOfServiceException, BarberShopReachedMaxCapacity {
-        if (this.clients.size() >= MAX_CLIENT) {
-            this.skippedClientBecauseOfMaxCapacity++;
-            throw new BarberShopReachedMaxCapacity(MAX_CLIENT);
-        }
-        final var time = new Date().getTime() % DAY_LENGTH;
-        if (time < SERVICE_START_TIME || time > SERVICE_END_TIME) {
-            this.skippedClientBecauseOfClosingHours++;
-            throw new BarberShopOutOfServiceException();
-        }
-
-        this.clients.addLast(c);
-        if (!this.barber.hasClient()) {
-            synchronized (this.clients) {
-                this.clients.notify();
+    public void newClientArrived(Client client) throws BarberShopOutOfServiceException, BarberShopReachedMaxCapacity {
+        synchronized (this.clients) {
+            System.out.println("New client arrived to the barber shop: " + client.getName());
+            final var time = new Date().getTime() % DAY_LENGTH;
+            if (time < SERVICE_START_TIME || time > SERVICE_END_TIME) {
+                this.skippedClientBecauseOfClosingHours++;
+                throw new BarberShopOutOfServiceException();
+            }
+            if (this.clients.size() >= MAX_CLIENT) {
+                this.skippedClientBecauseOfMaxCapacity++;
+                throw new BarberShopReachedMaxCapacity(MAX_CLIENT);
+            }
+            this.clients.addLast(client);
+            if (this.barbers.stream().anyMatch(barber -> !barber.hasClient())) {
+                this.clients.notifyAll();
             }
         }
     }
@@ -80,7 +86,7 @@ public class BarberShop {
     public void closeShop() {
         this.finallyClosed = true;
         synchronized (this.clients) {
-            this.clients.notify();
+            this.clients.notifyAll();
         }
     }
 
