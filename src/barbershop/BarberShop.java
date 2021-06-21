@@ -2,10 +2,13 @@ package barbershop;
 
 import java.util.Date;
 import java.util.LinkedList;
+import java.util.Optional;
 import java.util.Timer;
 import java.util.TimerTask;
+import java.util.function.Predicate;
 
 import client.Client;
+import client.ClientWants;
 import barbershop.barber.Barber;
 
 public class BarberShop {
@@ -32,30 +35,43 @@ public class BarberShop {
         this.finallyClosed = false;
         this.clients = new LinkedList<>();
         this.barbers = new LinkedList<>();
-        for (var i = 0; i < BARBERS_COUNT; i++) {
-            this.barbers.add(new Barber("Barber " + Integer.toString(i), this));
+        this.barbers.add(new Barber("Barber 1", this, ClientWants.HAIR_ONLY));
+        this.barbers.add(new Barber("Barber 2", this, ClientWants.HAIR_AND_BEARD));
+        for (var i = 2; i < BARBERS_COUNT; i++) {
+            this.barbers.add(new Barber("Barber " + Integer.toString(i), this, ClientWants.HAIR_ONLY));
         }
 
         this.barbers.forEach(barber -> new Thread(() -> {
+            Predicate<Client> barberCanWorkOnClient = (Client c) -> {
+                if (barber.getCanDo() == ClientWants.HAIR_AND_BEARD) return true;
+                return barber.getCanDo() == c.getNeeds();
+            };
             while(!this.finallyClosed || (this.finallyClosed && !this.clients.isEmpty())) {
-                Client c = null;
+                Optional<Client> c;
                 synchronized (this.clients) {
-                    if (this.clients.isEmpty()) {
+                    boolean canWorkOnClient = !this.clients.isEmpty() && this.clients.stream().anyMatch(barberCanWorkOnClient);
+                    if (!canWorkOnClient) {
                         try {
                             this.clients.wait();
                         } catch (InterruptedException e) {
                             Thread.currentThread().interrupt();
                         }
                     }
-                    c = this.clients.poll();
+
+                    c = this.clients.stream()
+                        .filter(barberCanWorkOnClient)
+                        .findFirst();
+
+                    if (c.isPresent()) this.clients.remove(c.get());
                 }
-                if (c != null) barber.addClient(c);
+                if (c.isPresent()) barber.addClient(c.get());
             }
         }).start());
     }
 
     public void barberFinished(Barber barber, Client client) {
-        System.out.println("Barber: " + barber.getName() + " finished with client: " + client.getName());
+        System.out.println("Barber: " + barber.getName() + " finished with client: " + client.getName() +
+        ( client.getNeeds() == ClientWants.HAIR_AND_BEARD ? " with Hair and beard" : " with only hair"));
         this.servedClients++;
     }
 

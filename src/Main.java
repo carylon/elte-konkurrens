@@ -6,6 +6,7 @@ import barbershop.BarberShop;
 import barbershop.BarberShopOutOfServiceException;
 import barbershop.BarberShopReachedMaxCapacity;
 import client.Client;
+import client.ClientWants;
 
 public class Main {
     public static void main(String[] args) {
@@ -22,6 +23,8 @@ public class Main {
         // Start service for 5 days.
         barberShop.startService(5);
 
+        var rand = new Random();
+
         // Start The barber shop service
         var i = 0;
         while (!barberShop.getFinallyClosed()) {
@@ -30,7 +33,7 @@ public class Main {
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
             }
-            final var c = new Client(Integer.toString(++i));
+            final var c = new Client(Integer.toString(++i), ClientWants.values()[rand.nextInt(ClientWants.values().length)]);
             try {
                 barberShop.newClientArrived(c);
             } catch (BarberShopOutOfServiceException | BarberShopReachedMaxCapacity e) {

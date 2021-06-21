@@ -4,6 +4,7 @@ import java.util.Random;
 
 import barbershop.BarberShop;
 import client.Client;
+import client.ClientWants;
 
 public class Barber {
     private static final short MIN_SERVICE_TIME = 20;
@@ -15,11 +16,14 @@ public class Barber {
     
     private final Random rand;
 
-    public Barber(String name, BarberShop bs) {
+    private final ClientWants canDo;
+
+    public Barber(String name, BarberShop bs, ClientWants canDo) {
         this.client = null;
         this.rand = new Random();
         this.barberShop = bs;
         this.name = name;
+        this.canDo = canDo;
     }
 
     public void addClient(Client c) {
@@ -40,5 +44,9 @@ public class Barber {
 
     public String getName() {
         return this.name;
+    }
+
+    public ClientWants getCanDo() {
+        return this.canDo;
     }
 }
